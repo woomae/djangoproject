@@ -4,13 +4,18 @@ from django.urls import reverse, reverse_lazy
 from django.views.generic import CreateView, DetailView,UpdateView, DeleteView
 from django.contrib.auth.forms import UserCreationForm
 from django.contrib.auth.models import User
+from django.contrib.auth.decorators import login_required
+from django.utils.decorators import method_decorator
 from accountapp.models import HelloWWorld
 from accountapp.forms import AccountUpdateForm
+from accountapp.decorators import account_ownership_required
+
+has_ownership = [account_ownership_required, login_required]
 
 # Create your views here.
 
+@login_required
 def hello_world(request):
-    
     
     if request.user.is_authenticated:
         if request.method == "POST":
@@ -23,8 +28,6 @@ def hello_world(request):
         else:
             hello_world_list = HelloWWorld.objects.all()
             return render(request, 'accountapp/hello_world.html', context={'hello_world_list': hello_world_list})
-    else:
-        return HttpResponseRedirect(reverse('accountapp:login'))
 
 class AccountCreateView(CreateView):
     model = User
@@ -36,40 +39,22 @@ class AccountDetailView(DetailView):
     model = User
     context_object_name = 'target_user'
     template_name = 'accountapp/detail.html'
-    
+
+
+@method_decorator(has_ownership, 'get')
+@method_decorator(has_ownership, 'post')
 class AccountUpdateView(UpdateView):
     model = User
     context_object_name = 'target_user'
     form_class = AccountUpdateForm
     success_url = reverse_lazy('accountapp:hello_world')
     template_name = 'accountapp/update.html'
-    
-    def get(self, *args,**kwagrs):
-        if self.request.user.is_authenticated and self.get_object()== self.request.user:
-            return super().get(self, *args,**kwagrs)
-        else:
-            return HttpResponseForbidden()
-        
-    def post(self, *args,**kwagrs):
-        if self.request.user.is_authenticated and self.get_object()== self.request.user:
-            return super().post(self, *args,**kwagrs)
-        else:
-            return HttpResponseForbidden()
-    
+
+
+@method_decorator(has_ownership, 'get')
+@method_decorator(has_ownership, 'post')
 class AccountDeleteView(DeleteView):
     model = User
     context_object_name = 'target_user'
     success_url = reverse_lazy('accountapp:login')
     template_name = 'accountapp/delete.html'
-    
-    def get(self, *args,**kwagrs):
-        if self.request.user.is_authenticated and self.get_object()== self.request.user:
-            return super().get(self, *args,**kwagrs)
-        else:
-            return HttpResponseForbidden()
-        
-    def post(self, *args,**kwagrs):
-        if self.request.user.is_authenticated and self.get_object()== self.request.user:
-            return super().post(self, *args,**kwagrs)
-        else:
-            return HttpResponseForbidden()
