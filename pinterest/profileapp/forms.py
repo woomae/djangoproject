@@ -3,6 +3,6 @@ from profileapp.models import Profile
 
 
 class ProfileCreationForm(ModelForm):
-    class meta:
+    class Meta:
         model = Profile
-        fileds = ['image', 'nickname', 'message']
+        fields = ['image', 'nickname', 'message']
